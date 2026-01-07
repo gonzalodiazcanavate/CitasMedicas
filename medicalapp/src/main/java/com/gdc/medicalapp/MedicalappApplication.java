@@ -1,13 +1,13 @@
-package com.gonzalodiazca.CitasMedicas.API;
+package com.gdc.medicalapp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CitasMedicasApiApplication {
+public class MedicalappApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CitasMedicasApiApplication.class, args);
+		SpringApplication.run(MedicalappApplication.class, args);
 	}
 
 }

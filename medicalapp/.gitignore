@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Asegurar que estos archivos NO estén ignorados
+!application.properties

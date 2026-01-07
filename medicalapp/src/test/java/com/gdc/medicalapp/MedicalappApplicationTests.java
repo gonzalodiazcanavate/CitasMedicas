@@ -1,10 +1,10 @@
-package com.gonzalodiazca.CitasMedicas.API;
+package com.gdc.medicalapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CitasMedicasApiApplicationTests {
+class MedicalappApplicationTests {
 
 	@Test
 	void contextLoads() {
