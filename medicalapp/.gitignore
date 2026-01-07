@@ -34,3 +34,4 @@ build/
 
 # Asegurar que estos archivos NO estén ignorados
 !application.properties
+/src/main/resources/application.properties
