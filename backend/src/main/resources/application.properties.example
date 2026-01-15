@@ -19,7 +19,7 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 # ===============================
 # JPA / Hibernate
 # ===============================
-spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.hibernate.ddl-auto=none
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
@@ -36,4 +36,9 @@ logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 spring.flyway.enabled=true
 spring.flyway.locations=classpath:db/migration
 spring.flyway.baseline-on-migrate=true
+
+# Debug only
+spring.flyway.fail-on-missing-locations=true
+spring.flyway.validate-on-migrate=true
+logging.level.org.flywaydb=DEBUG
 
