@@ -2,8 +2,11 @@ package com.gdc.medicalapp.controllers.auth;
 
 import com.gdc.medicalapp.controllers.auth.dto.LoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.RegisterRequest;
+import com.gdc.medicalapp.domain.entities.RefreshToken;
+import com.gdc.medicalapp.domain.entities.User;
 import com.gdc.medicalapp.security.cookie.CookieUtils;
 import com.gdc.medicalapp.security.jwt.JwtService;
+import com.gdc.medicalapp.security.jwt.RefreshTokenService;
 import com.gdc.medicalapp.security.user.UserPrincipal;
 import com.gdc.medicalapp.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,15 +24,18 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            UserService userService
+            UserService userService,
+            RefreshTokenService refreshTokenService
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userService = userService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     /* Register */
@@ -60,6 +66,8 @@ public class AuthController {
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
+        // Persistir refresh token
+        refreshTokenService.create(user.getUser(), refreshToken);
 
         return ResponseEntity.ok()
                 .header(
@@ -82,12 +90,13 @@ public class AuthController {
         if (refreshToken == null || !jwtService.isTokenValid(refreshToken)) {
             return ResponseEntity.status(401).build();
         }
+        // Comprobar que el refresh token existe en BD
+        RefreshToken stored = refreshTokenService.verify(refreshToken);
 
-        Long userId = jwtService.extractUserId(refreshToken);
+        User user = stored.getUser();
+        UserPrincipal principal = new UserPrincipal(user);
 
-        UserPrincipal user = userService.loadUserById(userId);
-
-        String newAccessToken = jwtService.generateAccessToken(user);
+        String newAccessToken = jwtService.generateAccessToken(principal);
 
         return ResponseEntity.ok()
                 .header(
@@ -100,8 +109,13 @@ public class AuthController {
     /* Logout */
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(
+            @CookieValue(name = "refresh_token", required = false) String refreshToken
+    ) {
 
+        if (refreshToken != null) {
+            refreshTokenService.verify(refreshToken);
+        }
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.SET_COOKIE,

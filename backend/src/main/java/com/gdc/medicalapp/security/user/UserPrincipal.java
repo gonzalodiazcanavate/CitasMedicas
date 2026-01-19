@@ -24,16 +24,15 @@ public class UserPrincipal implements UserDetails {
         );
     }
 
+    public User getUser() {
+        return user;
+    }
+
     @Override
     public String getPassword() {
         return user.getPassword();
     }
 
-    /**
-     * ⚠️ IMPORTANTE
-     * Esto NO determina cómo se busca el usuario
-     * Solo es el identificador interno una vez autenticado
-     */
     @Override
     public String getUsername() {
         return user.getUsername(); // o email, da igual
