@@ -32,6 +32,8 @@ public class AuthController {
         this.userService = userService;
     }
 
+    /* Register */
+
     @PostMapping("/register")
     public ResponseEntity<Void> register(
             @RequestBody RegisterRequest request
@@ -41,9 +43,8 @@ public class AuthController {
     }
 
 
-    /**
-     * LOGIN
-     */
+    /* Login */
+
     @PostMapping("/login")
     public ResponseEntity<Void> login(@RequestBody LoginRequest request) {
 
@@ -72,9 +73,32 @@ public class AuthController {
                 .build();
     }
 
-    /**
-     * LOGOUT
-     */
+    /* Refresh Token */
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Void> refreshToken(
+            @CookieValue(name = "refresh_token", required = false) String refreshToken
+    ) {
+        if (refreshToken == null || !jwtService.isTokenValid(refreshToken)) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Long userId = jwtService.extractUserId(refreshToken);
+
+        UserPrincipal user = userService.loadUserById(userId);
+
+        String newAccessToken = jwtService.generateAccessToken(user);
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        CookieUtils.accessToken(newAccessToken).toString()
+                )
+                .build();
+    }
+
+    /* Logout */
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
 

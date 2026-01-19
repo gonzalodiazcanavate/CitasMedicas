@@ -1,5 +1,6 @@
 package com.gdc.medicalapp.config.security;
 
+import com.gdc.medicalapp.security.jwt.JwtAuthenticationFilter;
 import com.gdc.medicalapp.security.user.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,15 +13,21 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(
+            CustomUserDetailsService userDetailsService,
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) {
         this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /* Hash de contraseñas */
@@ -65,12 +72,20 @@ public class SecurityConfig {
                 // REGISTRAR EL PROVIDER
                 .authenticationProvider(authenticationProvider())
 
+                // Filtro JWT
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+
                 // Reglas de autorización
                 .authorizeHttpRequests(auth -> auth
                        .requestMatchers(
                             "/auth/login",
+                            "/auth/refresh",
                             "/auth/logout",
-                            "/auth/register"
+                            "/auth/register",
+                            "/test/me"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
