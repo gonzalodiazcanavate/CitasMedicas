@@ -42,3 +42,7 @@ spring.flyway.fail-on-missing-locations=true
 spring.flyway.validate-on-migrate=true
 logging.level.org.flywaydb=DEBUG
 
+# JWT Configuration
+jwt.secret=key-prueba-cambiar_m�nimo-32bytes-o-da-error-dafdsfsdfsdfdsf
+jwt.access.expiration=3600000      # 1 hora
+jwt.refresh.expiration=604800000  # 7 d�as

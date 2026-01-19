@@ -18,7 +18,7 @@ Todos los cambios notables del proyecto se documentarán en este archivo.
 - SpringSecurity configurado en el backend.
 - Migración de base de datos para persistir refresh token añadida.
 - Endpoints para registro, login, logout y refresco de sesión añadidos.
-
+- Añadida colección de bruno para probar endpoints.
 
 ## [Versión 0.1.1] - 17/01/2026 ##
 ###  Agregado (Added)
