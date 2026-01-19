@@ -12,6 +12,14 @@ Todos los cambios notables del proyecto se documentarán en este archivo.
 
 ### Eliminado (Removed)
 
+## [Versión 0.1.2] - 19/01/2026 ##
+###  Agregado (Added)
+- Añadida autenticación JWT en el backend.
+- SpringSecurity configurado en el backend.
+- Migración de base de datos para persistir refresh token añadida.
+- Endpoints para registro, login, logout y refresco de sesión añadidos.
+- Añadida colección de bruno para probar endpoints.
+
 ## [Versión 0.1.1] - 17/01/2026 ##
 ###  Agregado (Added)
 - Añadida migración inicial de la base de datos.
