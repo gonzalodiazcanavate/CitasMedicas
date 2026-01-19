@@ -2,6 +2,7 @@ package com.gdc.medicalapp.domain.entities;
 
 import com.gdc.medicalapp.domain.enums.UserRole;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import lombok.Setter;
 @Table(name = "users")
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 public class User extends BaseEntity {
 
