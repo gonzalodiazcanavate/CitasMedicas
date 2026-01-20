@@ -1,10 +1,7 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
-const config: Config = {
-  content: [
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-};
-
-export default config;
+export default {
+  darkMode: 'class',
+  content: ['./app/**/*.{ts,tsx}'],
+  plugins: [require('@tailwindcss/forms')],
+} satisfies Config
