@@ -20,9 +20,20 @@ public class JwtService {
 
     public JwtService(JwtProperties properties) {
         this.properties = properties;
-        this.key = Keys.hmacShaKeyFor(
-                properties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
+        String secret = properties.getSecret();
+        // Validamos que jwt.secret exista y tenga al menos 32 bytes
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "Propiedad `jwt.secret` no encontrada. Añade `jwt.secret` en `src/main/resources/application.properties` o `application.yml`."
+            );
+        }
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException(
+                    "La propiedad `jwt.secret` debe tener al menos 32 bytes (por ejemplo 32 caracteres UTF-8) para HS256."
+            );
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     /* Generación de Tokens */
