@@ -1,18 +1,18 @@
-import { fetcher } from "@/lib/fetcher";
+import {fetcher} from '@/lib/fetcher';
 import type {
   LoginResponse,
   AuthMeResponse,
   User,
-} from "@/types/auth";
+} from '@/types/auth';
 
 // Login
 export function loginUser(
   username: string,
   password: string
 ): Promise<LoginResponse> {
-  return fetcher<LoginResponse>("/api/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ username, password }),
+  return fetcher<LoginResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({username, password}),
   });
 }
 
@@ -22,19 +22,19 @@ export function register(
   email: string,
   password: string
 ) {
-  return fetcher("/api/auth/register", {
-    method: "POST",
-    body: JSON.stringify({ username, email, password }),
+  return fetcher('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({username, email, password}),
   });
 }
 
 // Usuario autenticado
 export async function getCurrentUser(): Promise<User | null> {
-  const data = await fetcher<AuthMeResponse>("/api/auth/me");
+  const data = await fetcher<AuthMeResponse>('/api/auth/me');
   return data.auth ? data.user ?? null : null;
 }
 
 // Logout
 export function logout() {
-  return fetcher("/api/auth/logout");
+  return fetcher('/api/auth/logout');
 }

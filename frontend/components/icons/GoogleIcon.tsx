@@ -1,8 +1,9 @@
+/* eslint-disable max-len */
 interface GoogleIconProps {
   className?: string;
 }
 
-const GoogleIcon: React.FC<GoogleIconProps> = ({ className }) => {
+const GoogleIcon: React.FC<GoogleIconProps> = ({className}) => {
   return (
     <svg
       className={className}

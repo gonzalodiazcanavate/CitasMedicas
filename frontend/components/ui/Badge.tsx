@@ -1,6 +1,6 @@
 'use client';
 
-import type { ElementType } from 'react';
+import type {ElementType} from 'react';
 
 const Badge = ({
   icon: Icon,

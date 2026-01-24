@@ -1,13 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { loginUser } from "@/services/authApi";
+import {useState} from 'react';
+import {loginUser} from '@/services/authApi';
 import {
   HeartPulse,
   Mail,
-  Lock,
-  Eye,
-  ArrowRight,
 } from 'lucide-react';
 import Field from '../forms/Field';
 import Divider from '../ui/Divider';
@@ -26,8 +23,8 @@ const LoginForm = () => {
     e.preventDefault();
 
     const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
 
     try {
       await loginUser(email, password);

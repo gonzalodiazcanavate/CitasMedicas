@@ -1,15 +1,15 @@
 'use client';
 
-import { Eye, EyeOff, Lock } from 'lucide-react';
-import { useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
+import {Eye, EyeOff, Lock} from 'lucide-react';
+import {useState} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 
 type PasswordFieldProps = {
   value: string;
   onChange: Dispatch<SetStateAction<string>>;
 };
 
-const PasswordField = ({ value, onChange }: PasswordFieldProps) => {
+const PasswordField = ({value, onChange}: PasswordFieldProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const toggleShow = () => setShowPassword((prev) => !prev);
@@ -34,7 +34,9 @@ const PasswordField = ({ value, onChange }: PasswordFieldProps) => {
           placeholder="••••••••"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3.5 pl-10 pr-12 text-[#0d141b] placeholder:text-slate-400 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white"
+          className="w-full rounded-lg border border-slate-200 bg-slate-50 py-3.5 pl-10 pr-12 text-[#0d141b]
+           placeholder:text-slate-400 transition-all focus:border-primary focus:outline-none focus:ring-2 
+           focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white"
         />
 
         {/* Botón para mostrar/ocultar */}
