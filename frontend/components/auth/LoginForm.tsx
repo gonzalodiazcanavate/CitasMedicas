@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { loginUser } from "@/services/authApi";
 import {
   HeartPulse,
   Mail,
@@ -21,9 +22,21 @@ const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // aquí irá la llamada al backend JWT
+
+    const form = e.currentTarget;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    try {
+      await loginUser(email, password);
+      // router.push("/dashboard")
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log(err.message);
+      }
+    }
   };
 
   return (

@@ -7,9 +7,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark text-[#0d141b] dark:text-slate-100 antialiased">
       <div className="flex min-h-screen">
-        {/* Left: Hero / Background (desktop only) */}
+        {/* Izquierda: Hero (Visible en Tamaños lg en adelante) */}
         <LoginHero />
-        {/* Right: Login form */}
+        {/* Derecha: Formulario de login */}
         <LoginForm />
       </div>
     </div>
