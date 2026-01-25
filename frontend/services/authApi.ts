@@ -7,12 +7,12 @@ import type {
 
 // Login
 export function loginUser(
-  username: string,
+  emailOrUsername: string,
   password: string
 ): Promise<LoginResponse> {
   return fetcher<LoginResponse>('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({username, password}),
+    body: JSON.stringify({emailOrUsername, password}),
   });
 }
 
@@ -36,5 +36,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
 // Logout
 export function logout() {
-  return fetcher('/api/auth/logout');
+  return fetcher('/api/auth/logout', {
+    method: 'POST',
+  });
 }

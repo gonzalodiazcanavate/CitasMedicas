@@ -1,6 +1,8 @@
 package com.gdc.medicalapp.controllers.auth;
 
 import com.gdc.medicalapp.controllers.auth.dto.LoginRequest;
+import com.gdc.medicalapp.controllers.auth.dto.LoginResponse;
+import com.gdc.medicalapp.controllers.auth.dto.UserDto;
 import com.gdc.medicalapp.controllers.auth.dto.RegisterRequest;
 import com.gdc.medicalapp.domain.entities.RefreshToken;
 import com.gdc.medicalapp.domain.entities.User;
@@ -51,8 +53,8 @@ public class AuthController {
 
     /* Login */
 
-    @PostMapping("/login")
-    public ResponseEntity<Void> login(@RequestBody LoginRequest request) {
+        @PostMapping("/login")
+        public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -73,6 +75,8 @@ public class AuthController {
         // Persistir refresh token
         refreshTokenService.create(user.getUser(), refreshToken);
 
+        LoginResponse body = new LoginResponse(UserDto.from(user.getUser()));
+
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.SET_COOKIE,
@@ -88,7 +92,7 @@ public class AuthController {
                                 jwtService.getRefreshTokenExpiration()
                         ).toString()
                 )
-                .build();
+                .body(body);
     }
 
     /* Refresh Token */

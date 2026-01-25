@@ -16,23 +16,28 @@ import SubmitButton from './SubmitButton';
 import RegisterLink from './RegisterLink';
 
 const LoginForm = () => {
-  const [email, setEmail] = useState('');
+  const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Validación básica
+    if (!emailOrUsername || !password) {
+      setError('Por favor ingresa email/usuario y contraseña.');
+      return;
+    }
 
-    const form = e.currentTarget;
-    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
-
+    setLoading(true);
+    setError(null);
     try {
-      await loginUser(email, password);
-      // router.push("/dashboard")
+      await loginUser(emailOrUsername, password);
+      // guardar token/session y redirigir, p.ej. router.push('/dashboard')
     } catch (err) {
-      if (err instanceof Error) {
-        console.log(err.message);
-      }
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,7 +49,7 @@ const LoginForm = () => {
           <HeartPulse className="size-4 text-white" />
         </div>
         <h2 className="text-lg font-bold text-[#0d141b] dark:text-white">
-          MedCare
+          MedicalApp
         </h2>
       </div>
 
@@ -62,15 +67,15 @@ const LoginForm = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email */}
+          {/* Email or Username */}
           <Field
-            id="email"
-            label="Email Address"
-            type="email"
-            placeholder="e.g. doctor@hospital.com"
+            id="emailOrUsername"
+            label="Email or Username"
+            type="text"
+            placeholder="e.g. doctor@hospital.com or user455"
             icon={Mail}
-            value={email}
-            onChange={setEmail}
+            value={emailOrUsername}
+            onChange={setEmailOrUsername}
           />
 
           {/* Password */}
@@ -96,7 +101,8 @@ const LoginForm = () => {
           </div>
 
           {/* Submit */}
-          <SubmitButton />
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <SubmitButton disabled={loading} />
         </form>
 
         {/* Divider */}

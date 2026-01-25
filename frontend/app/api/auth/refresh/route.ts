@@ -1,24 +1,18 @@
 import {config} from '@/config/apiConfig';
-import type {LoginRequest} from '@/types/auth';
 
 export async function POST(request: Request) {
   try {
-    const body: LoginRequest = await request.json();
-
-    const res = await fetch(`${config.apiUrl}/auth/login`, {
+    const res = await fetch(`${config.apiUrl}/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Reenviar cookies del cliente al backend
         'Cookie': request.headers.get('cookie') || '',
       },
-      body: JSON.stringify(body),
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({error: 'Error en el servidor'}));
       return new Response(
-        JSON.stringify({error: errorData.error || 'Error en el servidor'}),
+        JSON.stringify({error: 'Token inválido o expirado'}),
         {
           status: res.status,
           headers: {'Content-Type': 'application/json'},
@@ -26,9 +20,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const data = await res.json();
-
-    // Crear headers de respuesta y copiar todas las cookies del backend
+    // Crear headers y copiar nuevas cookies del backend
     const headers = new Headers();
     headers.set('Content-Type', 'application/json');
     
@@ -37,7 +29,7 @@ export async function POST(request: Request) {
       headers.append('Set-Cookie', cookie);
     });
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({success: true}), {
       status: 200,
       headers: headers,
     });
