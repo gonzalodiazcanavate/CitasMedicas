@@ -67,11 +67,21 @@ public class JwtService {
 
     public boolean isTokenValid(String token) {
         try {
-            extractAllClaims(token);
-            return true;
+            Claims claims = extractAllClaims(token);
+            return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
             return false;
         }
+    }
+
+    /* Getters para duraciones */
+
+    public long getAccessTokenExpiration() {
+        return properties.getAccessTokenExpiration();
+    }
+
+    public long getRefreshTokenExpiration() {
+        return properties.getRefreshTokenExpiration();
     }
 
     /* Extracción de tokens */

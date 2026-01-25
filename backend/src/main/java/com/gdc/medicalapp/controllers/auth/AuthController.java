@@ -66,17 +66,27 @@ public class AuthController {
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
+
+        // Limpiar tokens expirados del usuario antes de crear uno nuevo
+        refreshTokenService.deleteExpiredTokensByUser(user.getUser());
+
         // Persistir refresh token
         refreshTokenService.create(user.getUser(), refreshToken);
 
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.SET_COOKIE,
-                        CookieUtils.accessToken(accessToken).toString()
+                        CookieUtils.accessToken(
+                                accessToken,
+                                jwtService.getAccessTokenExpiration()
+                        ).toString()
                 )
                 .header(
                         HttpHeaders.SET_COOKIE,
-                        CookieUtils.refreshToken(refreshToken).toString()
+                        CookieUtils.refreshToken(
+                                refreshToken,
+                                jwtService.getRefreshTokenExpiration()
+                        ).toString()
                 )
                 .build();
     }
@@ -87,23 +97,58 @@ public class AuthController {
     public ResponseEntity<Void> refreshToken(
             @CookieValue(name = "refresh_token", required = false) String refreshToken
     ) {
-        if (refreshToken == null || !jwtService.isTokenValid(refreshToken)) {
+        if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(401).build();
         }
-        // Comprobar que el refresh token existe en BD
-        RefreshToken stored = refreshTokenService.verify(refreshToken);
 
-        User user = stored.getUser();
-        UserPrincipal principal = new UserPrincipal(user);
+        if (!jwtService.isTokenValid(refreshToken)) {
+            return ResponseEntity.status(401).build();
+        }
 
-        String newAccessToken = jwtService.generateAccessToken(principal);
+        try {
+            // Comprobar que el refresh token existe en BD y no está revocado/expirado
+            RefreshToken storedToken = refreshTokenService.verify(refreshToken);
+            User user = storedToken.getUser();
 
-        return ResponseEntity.ok()
-                .header(
-                        HttpHeaders.SET_COOKIE,
-                        CookieUtils.accessToken(newAccessToken).toString()
-                )
-                .build();
+            // Verificar que el usuario sigue activo
+            if (!userService.isUserActive(user.getId())) {
+                refreshTokenService.revoke(storedToken);
+                return ResponseEntity.status(401).build();
+            }
+
+            UserPrincipal principal = new UserPrincipal(user);
+
+            // ROTACIÓN DE TOKENS: Generar nuevo access y refresh token
+            String newAccessToken = jwtService.generateAccessToken(principal);
+            String newRefreshToken = jwtService.generateRefreshToken(principal);
+
+            // Revocar el token antiguo (previene reutilización)
+            refreshTokenService.revoke(storedToken);
+
+            // Crear nuevo refresh token
+            refreshTokenService.create(user, newRefreshToken);
+
+            return ResponseEntity.ok()
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            CookieUtils.accessToken(
+                                    newAccessToken,
+                                    jwtService.getAccessTokenExpiration()
+                            ).toString()
+                    )
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            CookieUtils.refreshToken(
+                                    newRefreshToken,
+                                    jwtService.getRefreshTokenExpiration()
+                            ).toString()
+                    )
+                    .build();
+
+        } catch (RuntimeException e) {
+            // Token inválido, expirado o revocado
+            return ResponseEntity.status(401).build();
+        }
     }
 
     /* Logout */
@@ -113,18 +158,24 @@ public class AuthController {
             @CookieValue(name = "refresh_token", required = false) String refreshToken
     ) {
 
-        if (refreshToken != null) {
-            refreshTokenService.verify(refreshToken);
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            try {
+                refreshTokenService.revokeByToken(refreshToken);
+            } catch (Exception e) {
+                // Token ya no existe o es inválido, continuar con logout
+            }
         }
+
         return ResponseEntity.ok()
                 .header(
                         HttpHeaders.SET_COOKIE,
-                        CookieUtils.delete("access_token").toString()
+                        CookieUtils.delete("access_token", "/").toString()
                 )
                 .header(
                         HttpHeaders.SET_COOKIE,
-                        CookieUtils.delete("refresh_token").toString()
+                        CookieUtils.delete("refresh_token", "/auth").toString()
                 )
                 .build();
     }
 }
+

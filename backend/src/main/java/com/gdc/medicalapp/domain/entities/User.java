@@ -33,5 +33,11 @@ public class User extends BaseEntity {
     private UserRole role;
 
     private String name;
-}
 
+    // Opcional: Control de estado del usuario
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    @Column(nullable = false)
+    private boolean accountLocked = false;
+}

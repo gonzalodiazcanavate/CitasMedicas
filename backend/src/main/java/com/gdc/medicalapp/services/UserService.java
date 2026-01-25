@@ -55,4 +55,9 @@ public class UserService {
         return new UserPrincipal(user);
     }
 
+    public boolean isUserActive(Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.isEnabled() && !user.isAccountLocked())
+                .orElse(false);
+    }
 }
