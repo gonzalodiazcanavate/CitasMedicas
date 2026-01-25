@@ -21,7 +21,7 @@ public class CookieUtils {
                 .httpOnly(true)
                 .secure(false)
                 .sameSite("Strict")
-                .path("/auth")
+                .path("/")
                 .maxAge(Duration.ofMillis(expirationMillis))
                 .build();
     }

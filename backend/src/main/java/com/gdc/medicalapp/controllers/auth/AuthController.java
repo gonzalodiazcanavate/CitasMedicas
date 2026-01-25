@@ -177,7 +177,7 @@ public class AuthController {
                 )
                 .header(
                         HttpHeaders.SET_COOKIE,
-                        CookieUtils.delete("refresh_token", "/auth").toString()
+                        CookieUtils.delete("refresh_token", "/").toString()
                 )
                 .build();
     }

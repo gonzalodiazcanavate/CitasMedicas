@@ -1,3 +1,4 @@
+import {NextResponse} from 'next/server';
 import {config} from '@/config/apiConfig';
 import type {LoginRequest} from '@/types/auth';
 
@@ -9,46 +10,35 @@ export async function POST(request: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Reenviar cookies del cliente al backend
-        'Cookie': request.headers.get('cookie') || '',
       },
       body: JSON.stringify(body),
+      credentials: 'include',
     });
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({error: 'Error en el servidor'}));
-      return new Response(
-        JSON.stringify({error: errorData.error || 'Error en el servidor'}),
-        {
-          status: res.status,
-          headers: {'Content-Type': 'application/json'},
-        }
+      return NextResponse.json(
+        {error: errorData.error || 'Error en el servidor'},
+        {status: res.status}
       );
     }
 
     const data = await res.json();
 
-    // Crear headers de respuesta y copiar todas las cookies del backend
-    const headers = new Headers();
-    headers.set('Content-Type', 'application/json');
-    
-    const cookies = res.headers.getSetCookie();
-    cookies.forEach((cookie) => {
-      headers.append('Set-Cookie', cookie);
-    });
+    // Copiar cookies del backend al cliente
+    const response = NextResponse.json(data);
+    const cookies = res.headers.get('set-cookie');
+    console.log(cookies);
+    if (cookies) {
+      response.headers.set('set-cookie', cookies);
+    }
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: headers,
-    });
+    return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
-    return new Response(
-      JSON.stringify({error: errorMessage}),
-      {
-        status: 500,
-        headers: {'Content-Type': 'application/json'},
-      }
+    return NextResponse.json(
+      {error: errorMessage},
+      {status: 500}
     );
   }
 }
