@@ -46,6 +46,10 @@ public class JwtService {
         return generateToken(user, properties.getRefreshTokenExpiration());
     }
 
+    public String generateRefreshToken(UserPrincipal user, long customExpiration) {
+        return generateToken(user, customExpiration);
+    }
+
     private String generateToken(UserPrincipal user, long expiration) {
 
         Date now = new Date();
@@ -82,6 +86,10 @@ public class JwtService {
 
     public long getRefreshTokenExpiration() {
         return properties.getRefreshTokenExpiration();
+    }
+
+    public long getExtendedRefreshTokenExpiration() {
+        return properties.getExtendedRefreshTokenExpiration();
     }
 
     /* Extracción de tokens */

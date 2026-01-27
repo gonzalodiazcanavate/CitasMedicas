@@ -28,7 +28,7 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    public RefreshToken create(User user, String rawToken) {
+    public RefreshToken create(User user, String rawToken, long expirationMillis) {
         if (user == null || rawToken == null || rawToken.isBlank()) {
             throw new IllegalArgumentException("Usuario y token no pueden ser nulos");
         }
@@ -45,7 +45,7 @@ public class RefreshTokenService {
         refreshToken.setUser(user);
         refreshToken.setTokenHash(TokenHasher.hash(rawToken));
         refreshToken.setExpiresAt(
-                Instant.now().plusMillis(jwtProperties.getRefreshTokenExpiration())
+                Instant.now().plusMillis(expirationMillis)
         );
 
         return repository.save(refreshToken);

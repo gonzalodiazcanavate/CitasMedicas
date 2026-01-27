@@ -12,6 +12,9 @@ import com.gdc.medicalapp.security.jwt.RefreshTokenService;
 import com.gdc.medicalapp.security.user.UserPrincipal;
 import com.gdc.medicalapp.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.time.Instant;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -66,14 +69,20 @@ public class AuthController {
 
         UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
 
+        // Determinar duración del refresh token según "Remember Me"
+        boolean rememberMe = request.rememberMe() != null && request.rememberMe();
+        long refreshTokenExpiration = rememberMe 
+        ? jwtService.getExtendedRefreshTokenExpiration()  // 30 días
+        : jwtService.getRefreshTokenExpiration();         // 7 días
+
         String accessToken = jwtService.generateAccessToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user, refreshTokenExpiration);
 
         // Limpiar tokens expirados del usuario antes de crear uno nuevo
         refreshTokenService.deleteExpiredTokensByUser(user.getUser());
 
         // Persistir refresh token
-        refreshTokenService.create(user.getUser(), refreshToken);
+        refreshTokenService.create(user.getUser(), refreshToken, refreshTokenExpiration);
 
         LoginResponse body = new LoginResponse(UserDto.from(user.getUser()));
 
@@ -89,7 +98,7 @@ public class AuthController {
                         HttpHeaders.SET_COOKIE,
                         CookieUtils.refreshToken(
                                 refreshToken,
-                                jwtService.getRefreshTokenExpiration()
+                                refreshTokenExpiration
                         ).toString()
                 )
                 .body(body);
@@ -122,15 +131,17 @@ public class AuthController {
 
             UserPrincipal principal = new UserPrincipal(user);
 
+            // Extraemos el tiempo restante para expiración de StoredToken para añadirlo a nuevo token (Absolute Expiration)
+            long storedTokenExpiration = storedToken.getExpiresAt().toEpochMilli() - java.time.Instant.now().toEpochMilli();
             // ROTACIÓN DE TOKENS: Generar nuevo access y refresh token
             String newAccessToken = jwtService.generateAccessToken(principal);
-            String newRefreshToken = jwtService.generateRefreshToken(principal);
+            String newRefreshToken = jwtService.generateRefreshToken(principal, storedTokenExpiration);
 
             // Revocar el token antiguo (previene reutilización)
             refreshTokenService.revoke(storedToken);
 
-            // Crear nuevo refresh token
-            refreshTokenService.create(user, newRefreshToken);
+            // Crear nuevo refresh token con la misma fecha de expiración que el anterior
+            refreshTokenService.create(user, newRefreshToken, storedTokenExpiration);
 
             return ResponseEntity.ok()
                     .header(
@@ -144,7 +155,7 @@ public class AuthController {
                             HttpHeaders.SET_COOKIE,
                             CookieUtils.refreshToken(
                                     newRefreshToken,
-                                    jwtService.getRefreshTokenExpiration()
+                                    storedTokenExpiration
                             ).toString()
                     )
                     .build();

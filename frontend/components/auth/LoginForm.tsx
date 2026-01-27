@@ -18,6 +18,7 @@ import RegisterLink from './RegisterLink';
 const LoginForm = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +33,7 @@ const LoginForm = () => {
     setLoading(true);
     setError(null);
     try {
-      await loginUser(emailOrUsername, password);
+      await loginUser(emailOrUsername, password, rememberMe);
       // guardar token/session y redirigir, p.ej. router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -90,6 +91,8 @@ const LoginForm = () => {
             <input
               id="remember"
               type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
               className="size-4 cursor-pointer rounded border-slate-300 text-primary focus:ring-primary"
             />
             <label

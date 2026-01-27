@@ -8,11 +8,12 @@ import type {
 // Login
 export function loginUser(
   emailOrUsername: string,
-  password: string
+  password: string,
+  rememberMe: boolean = false
 ): Promise<LoginResponse> {
   return fetcher<LoginResponse>('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({emailOrUsername, password}),
+    body: JSON.stringify({emailOrUsername, password, rememberMe}),
   });
 }
 
