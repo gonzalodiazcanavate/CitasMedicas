@@ -5,6 +5,7 @@ import com.gdc.medicalapp.domain.entities.User;
 import com.gdc.medicalapp.domain.enums.UserRole;
 import com.gdc.medicalapp.repositories.UserRepository;
 import com.gdc.medicalapp.security.user.UserPrincipal;
+import com.gdc.medicalapp.services.oauth.AppleTokenVerifierService.AppleUserInfo;
 import com.gdc.medicalapp.services.oauth.GoogleTokenVerifierService.GoogleUserInfo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -91,6 +92,58 @@ public class UserService {
      */
     public static class GoogleUserNotFoundException extends RuntimeException {
         public GoogleUserNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * Procesa el login con Apple. Solo permite login a usuarios existentes.
+     * No se permite el registro de nuevos usuarios con Apple por motivos de seguridad.
+     *
+     * @throws AppleUserNotFoundException si el usuario no existe en el sistema
+     */
+    @Transactional
+    public User processAppleLogin(AppleUserInfo appleUserInfo) {
+        // 1. Buscar por Apple ID (usuario ya vinculó su cuenta de Apple)
+        return userRepository.findByAppleId(appleUserInfo.appleId())
+                .map(user -> {
+                    // Usuario existente con Apple vinculado
+                    validateUserActive(user);
+                    return user;
+                })
+                .orElseGet(() -> {
+                    // 2. Buscar por email (usuario existe pero no ha vinculado Apple)
+                    // Nota: El email de Apple puede ser privado (relay)
+                    if (appleUserInfo.email() != null) {
+                        return userRepository.findByEmail(appleUserInfo.email())
+                                .map(existingUser -> {
+                                    // Vincular Apple ID a usuario existente
+                                    existingUser.setAppleId(appleUserInfo.appleId());
+                                    // Actualizar nombre si está disponible y el usuario no tiene
+                                    if (appleUserInfo.name() != null &&
+                                            (existingUser.getName() == null || existingUser.getName().isBlank())) {
+                                        existingUser.setName(appleUserInfo.name());
+                                    }
+                                    validateUserActive(existingUser);
+                                    return userRepository.save(existingUser);
+                                })
+                                .orElseThrow(() -> new AppleUserNotFoundException(
+                                        "Por motivos de seguridad, el inicio de sesión con Apple solo está disponible " +
+                                        "para usuarios ya registrados. Por favor, regístrese primero con email y contraseña."
+                                ));
+                    }
+                    throw new AppleUserNotFoundException(
+                            "Por motivos de seguridad, el inicio de sesión con Apple solo está disponible " +
+                            "para usuarios ya registrados. Por favor, regístrese primero con email y contraseña."
+                    );
+                });
+    }
+
+    /**
+     * Excepción lanzada cuando un usuario intenta hacer login con Apple pero no existe en el sistema
+     */
+    public static class AppleUserNotFoundException extends RuntimeException {
+        public AppleUserNotFoundException(String message) {
             super(message);
         }
     }

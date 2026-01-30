@@ -83,6 +83,7 @@ public class SecurityConfig {
                        .requestMatchers(
                             "/auth/login",
                             "/auth/google",
+                            "/auth/apple",
                             "/auth/refresh",
                             "/auth/logout",
                             "/auth/register",

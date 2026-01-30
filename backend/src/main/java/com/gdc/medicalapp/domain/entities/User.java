@@ -45,7 +45,11 @@ public class User extends BaseEntity {
     @Column(unique = true)
     private String googleId;
 
-    // Indica el proveedor de autenticación (LOCAL, GOOGLE, etc.)
+    // OAuth2: Apple ID para usuarios que se autentican con Apple
+    @Column(unique = true)
+    private String appleId;
+
+    // Indica el proveedor de autenticación (LOCAL, GOOGLE, APPLE, etc.)
     @Column(nullable = false)
     private String authProvider = "LOCAL";
 }

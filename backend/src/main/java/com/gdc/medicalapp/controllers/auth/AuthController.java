@@ -1,5 +1,6 @@
 package com.gdc.medicalapp.controllers.auth;
 
+import com.gdc.medicalapp.controllers.auth.dto.AppleLoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.GoogleLoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.LoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.LoginResponse;
@@ -12,6 +13,8 @@ import com.gdc.medicalapp.security.jwt.JwtService;
 import com.gdc.medicalapp.security.jwt.RefreshTokenService;
 import com.gdc.medicalapp.security.user.UserPrincipal;
 import com.gdc.medicalapp.services.UserService;
+import com.gdc.medicalapp.services.oauth.AppleTokenVerifierService;
+import com.gdc.medicalapp.services.oauth.AppleTokenVerifierService.AppleUserInfo;
 import com.gdc.medicalapp.services.oauth.GoogleTokenVerifierService;
 import com.gdc.medicalapp.services.oauth.GoogleTokenVerifierService.GoogleUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,19 +38,22 @@ public class AuthController {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final GoogleTokenVerifierService googleTokenVerifierService;
+    private final AppleTokenVerifierService appleTokenVerifierService;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             UserService userService,
             RefreshTokenService refreshTokenService,
-            GoogleTokenVerifierService googleTokenVerifierService
+            GoogleTokenVerifierService googleTokenVerifierService,
+            AppleTokenVerifierService appleTokenVerifierService
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userService = userService;
         this.refreshTokenService = refreshTokenService;
         this.googleTokenVerifierService = googleTokenVerifierService;
+        this.appleTokenVerifierService = appleTokenVerifierService;
     }
 
     /* Register */
@@ -160,6 +166,68 @@ public class AuthController {
             return ResponseEntity.status(401).build();
         } catch (UserService.GoogleUserNotFoundException e) {
             // Usuario no registrado intentando hacer login con Google
+            return ResponseEntity.status(404)
+                    .body(new LoginResponse(null, e.getMessage()));
+        } catch (IllegalStateException e) {
+            // Usuario deshabilitado o bloqueado
+            return ResponseEntity.status(403).build();
+        }
+    }
+
+    /* Apple Login */
+
+    @PostMapping("/apple")
+    public ResponseEntity<LoginResponse> appleLogin(
+            @Valid @RequestBody AppleLoginRequest request
+    ) {
+        try {
+            // 1. Verificar el token de Apple (incluye nombre si es primer login)
+            AppleUserInfo appleUserInfo = appleTokenVerifierService.verifyToken(
+                    request.idToken(),
+                    request.firstName(),
+                    request.lastName()
+            );
+
+            // 2. Buscar usuario existente
+            User user = userService.processAppleLogin(appleUserInfo);
+
+            // 3. Crear UserPrincipal para generar JWT
+            UserPrincipal principal = new UserPrincipal(user);
+
+            // 4. Generar tokens (usamos duración extendida por defecto para OAuth)
+            long refreshTokenExpiration = jwtService.getExtendedRefreshTokenExpiration();
+            String accessToken = jwtService.generateAccessToken(principal);
+            String refreshToken = jwtService.generateRefreshToken(principal, refreshTokenExpiration);
+
+            // 5. Limpiar tokens expirados y persistir nuevo refresh token
+            refreshTokenService.deleteExpiredTokensByUser(user);
+            refreshTokenService.create(user, refreshToken, refreshTokenExpiration);
+
+            // 6. Preparar respuesta
+            LoginResponse body = new LoginResponse(UserDto.from(user));
+
+            return ResponseEntity.ok()
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            CookieUtils.accessToken(
+                                    accessToken,
+                                    jwtService.getAccessTokenExpiration()
+                            ).toString()
+                    )
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            CookieUtils.refreshToken(
+                                    refreshToken,
+                                    refreshTokenExpiration
+                            ).toString()
+                    )
+                    .body(body);
+
+        } catch (AppleTokenVerifierService.InvalidAppleTokenException e) {
+            return ResponseEntity.status(401)
+                    .body(new LoginResponse(null, e.getMessage()));
+        } catch (UserService.AppleUserNotFoundException e) {
+            // Usuario no registrado intentando hacer login con Apple
             return ResponseEntity.status(404)
                     .body(new LoginResponse(null, e.getMessage()));
         } catch (IllegalStateException e) {

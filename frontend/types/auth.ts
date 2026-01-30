@@ -20,6 +20,12 @@ export interface GoogleLoginRequest {
   idToken: string;
 }
 
+export interface AppleLoginRequest {
+  idToken: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export interface AuthMeResponse {
   auth: boolean;
   user?: User;

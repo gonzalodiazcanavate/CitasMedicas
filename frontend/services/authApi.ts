@@ -43,6 +43,18 @@ export function loginWithGoogle(idToken: string): Promise<LoginResponse> {
   });
 }
 
+// Login con Apple
+export function loginWithApple(
+  idToken: string,
+  firstName?: string,
+  lastName?: string
+): Promise<LoginResponse> {
+  return fetcher<LoginResponse>('/api/auth/apple', {
+    method: 'POST',
+    body: JSON.stringify({idToken, firstName, lastName}),
+  });
+}
+
 // Logout
 export function logout() {
   return fetcher('/api/auth/logout', {

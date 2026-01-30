@@ -118,6 +118,11 @@ const LoginForm = () => {
             // router.push('/dashboard');
           }}
           onGoogleError={(errorMsg) => setError(errorMsg)}
+          onAppleSuccess={() => {
+            // Redirigir al dashboard tras login exitoso con Apple
+            // router.push('/dashboard');
+          }}
+          onAppleError={(errorMsg) => setError(errorMsg)}
         />
 
         {/* Register link */}
