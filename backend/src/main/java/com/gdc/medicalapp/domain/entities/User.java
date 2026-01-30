@@ -40,4 +40,12 @@ public class User extends BaseEntity {
 
     @Column(nullable = false)
     private boolean accountLocked = false;
+
+    // OAuth2: Google ID para usuarios que se autentican con Google
+    @Column(unique = true)
+    private String googleId;
+
+    // Indica el proveedor de autenticación (LOCAL, GOOGLE, etc.)
+    @Column(nullable = false)
+    private String authProvider = "LOCAL";
 }

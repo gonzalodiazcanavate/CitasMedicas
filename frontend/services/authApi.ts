@@ -35,6 +35,14 @@ export async function getCurrentUser(): Promise<User | null> {
   return data.auth ? data.user ?? null : null;
 }
 
+// Login con Google
+export function loginWithGoogle(idToken: string): Promise<LoginResponse> {
+  return fetcher<LoginResponse>('/api/auth/google', {
+    method: 'POST',
+    body: JSON.stringify({idToken}),
+  });
+}
+
 // Logout
 export function logout() {
   return fetcher('/api/auth/logout', {

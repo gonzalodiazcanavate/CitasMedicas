@@ -12,7 +12,12 @@ export interface User {
 }
 
 export interface LoginResponse {
-  user: User;
+  user: User | null;
+  message?: string;
+}
+
+export interface GoogleLoginRequest {
+  idToken: string;
 }
 
 export interface AuthMeResponse {

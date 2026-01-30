@@ -112,7 +112,13 @@ const LoginForm = () => {
         <Divider />
 
         {/* Social login */}
-        <SocialButtons />
+        <SocialButtons
+          onGoogleSuccess={() => {
+            // Redirigir al dashboard tras login exitoso con Google
+            // router.push('/dashboard');
+          }}
+          onGoogleError={(errorMsg) => setError(errorMsg)}
+        />
 
         {/* Register link */}
         <RegisterLink />

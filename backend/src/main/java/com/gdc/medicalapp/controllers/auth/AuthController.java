@@ -1,5 +1,6 @@
 package com.gdc.medicalapp.controllers.auth;
 
+import com.gdc.medicalapp.controllers.auth.dto.GoogleLoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.LoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.LoginResponse;
 import com.gdc.medicalapp.controllers.auth.dto.UserDto;
@@ -11,7 +12,10 @@ import com.gdc.medicalapp.security.jwt.JwtService;
 import com.gdc.medicalapp.security.jwt.RefreshTokenService;
 import com.gdc.medicalapp.security.user.UserPrincipal;
 import com.gdc.medicalapp.services.UserService;
+import com.gdc.medicalapp.services.oauth.GoogleTokenVerifierService;
+import com.gdc.medicalapp.services.oauth.GoogleTokenVerifierService.GoogleUserInfo;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 import java.time.Instant;
 
@@ -30,17 +34,20 @@ public class AuthController {
     private final JwtService jwtService;
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+    private final GoogleTokenVerifierService googleTokenVerifierService;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             UserService userService,
-            RefreshTokenService refreshTokenService
+            RefreshTokenService refreshTokenService,
+            GoogleTokenVerifierService googleTokenVerifierService
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userService = userService;
         this.refreshTokenService = refreshTokenService;
+        this.googleTokenVerifierService = googleTokenVerifierService;
     }
 
     /* Register */
@@ -102,6 +109,63 @@ public class AuthController {
                         ).toString()
                 )
                 .body(body);
+    }
+
+    /* Google Login */
+
+    @PostMapping("/google")
+    public ResponseEntity<LoginResponse> googleLogin(
+            @Valid @RequestBody GoogleLoginRequest request
+    ) {
+        try {
+            // 1. Verificar el token de Google
+            GoogleUserInfo googleUserInfo = googleTokenVerifierService.verifyToken(request.idToken());
+
+            // 2. Buscar o crear usuario
+            User user = userService.processGoogleLogin(googleUserInfo);
+
+            // 3. Crear UserPrincipal para generar JWT
+            UserPrincipal principal = new UserPrincipal(user);
+
+            // 4. Generar tokens (usamos duración extendida por defecto para OAuth)
+            long refreshTokenExpiration = jwtService.getExtendedRefreshTokenExpiration();
+            String accessToken = jwtService.generateAccessToken(principal);
+            String refreshToken = jwtService.generateRefreshToken(principal, refreshTokenExpiration);
+
+            // 5. Limpiar tokens expirados y persistir nuevo refresh token
+            refreshTokenService.deleteExpiredTokensByUser(user);
+            refreshTokenService.create(user, refreshToken, refreshTokenExpiration);
+
+            // 6. Preparar respuesta
+            LoginResponse body = new LoginResponse(UserDto.from(user));
+
+            return ResponseEntity.ok()
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            CookieUtils.accessToken(
+                                    accessToken,
+                                    jwtService.getAccessTokenExpiration()
+                            ).toString()
+                    )
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            CookieUtils.refreshToken(
+                                    refreshToken,
+                                    refreshTokenExpiration
+                            ).toString()
+                    )
+                    .body(body);
+
+        } catch (GoogleTokenVerifierService.InvalidGoogleTokenException e) {
+            return ResponseEntity.status(401).build();
+        } catch (UserService.GoogleUserNotFoundException e) {
+            // Usuario no registrado intentando hacer login con Google
+            return ResponseEntity.status(404)
+                    .body(new LoginResponse(null, e.getMessage()));
+        } catch (IllegalStateException e) {
+            // Usuario deshabilitado o bloqueado
+            return ResponseEntity.status(403).build();
+        }
     }
 
     /* Refresh Token */
