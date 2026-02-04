@@ -1,9 +1,11 @@
 package com.gdc.medicalapp.controllers.auth;
 
 import com.gdc.medicalapp.controllers.auth.dto.AppleLoginRequest;
+import com.gdc.medicalapp.controllers.auth.dto.ForgotPasswordRequest;
 import com.gdc.medicalapp.controllers.auth.dto.GoogleLoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.LoginRequest;
 import com.gdc.medicalapp.controllers.auth.dto.LoginResponse;
+import com.gdc.medicalapp.controllers.auth.dto.ResetPasswordRequest;
 import com.gdc.medicalapp.controllers.auth.dto.UserDto;
 import com.gdc.medicalapp.controllers.auth.dto.RegisterRequest;
 import com.gdc.medicalapp.domain.entities.RefreshToken;
@@ -12,6 +14,7 @@ import com.gdc.medicalapp.security.cookie.CookieUtils;
 import com.gdc.medicalapp.security.jwt.JwtService;
 import com.gdc.medicalapp.security.jwt.RefreshTokenService;
 import com.gdc.medicalapp.security.user.UserPrincipal;
+import com.gdc.medicalapp.services.PasswordResetService;
 import com.gdc.medicalapp.services.UserService;
 import com.gdc.medicalapp.services.oauth.AppleTokenVerifierService;
 import com.gdc.medicalapp.services.oauth.AppleTokenVerifierService.AppleUserInfo;
@@ -21,6 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import java.time.Instant;
+import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +43,7 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final GoogleTokenVerifierService googleTokenVerifierService;
     private final AppleTokenVerifierService appleTokenVerifierService;
+    private final PasswordResetService passwordResetService;
 
     public AuthController(
             AuthenticationManager authenticationManager,
@@ -46,7 +51,8 @@ public class AuthController {
             UserService userService,
             RefreshTokenService refreshTokenService,
             GoogleTokenVerifierService googleTokenVerifierService,
-            AppleTokenVerifierService appleTokenVerifierService
+            AppleTokenVerifierService appleTokenVerifierService,
+            PasswordResetService passwordResetService
     ) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -54,6 +60,7 @@ public class AuthController {
         this.refreshTokenService = refreshTokenService;
         this.googleTokenVerifierService = googleTokenVerifierService;
         this.appleTokenVerifierService = appleTokenVerifierService;
+        this.passwordResetService = passwordResetService;
     }
 
     /* Register */
@@ -323,6 +330,60 @@ public class AuthController {
                         CookieUtils.delete("refresh_token", "/").toString()
                 )
                 .build();
+    }
+
+    /* Forgot Password - Solicitar restablecimiento */
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request
+    ) {
+        // Siempre retorna éxito por seguridad (no revelar si el email existe)
+        passwordResetService.initiatePasswordReset(request.email());
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Si el email está registrado, recibirás instrucciones para restablecer tu contraseña."
+        ));
+    }
+
+    /* Reset Password - Cambiar contraseña con token */
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request
+    ) {
+        PasswordResetService.ResetResult result = passwordResetService.resetPassword(
+                request.token(),
+                request.newPassword()
+        );
+
+        return switch (result) {
+            case SUCCESS -> ResponseEntity.ok(Map.of(
+                    "message", "Tu contraseña ha sido actualizada exitosamente."
+            ));
+            case INVALID_TOKEN -> ResponseEntity.badRequest().body(Map.of(
+                    "error", "El enlace de recuperación no es válido."
+            ));
+            case TOKEN_EXPIRED -> ResponseEntity.badRequest().body(Map.of(
+                    "error", "El enlace de recuperación ha expirado. Por favor solicita uno nuevo."
+            ));
+            case TOKEN_ALREADY_USED -> ResponseEntity.badRequest().body(Map.of(
+                    "error", "Este enlace ya ha sido utilizado. Por favor solicita uno nuevo."
+            ));
+            case USER_INACTIVE -> ResponseEntity.status(403).body(Map.of(
+                    "error", "Tu cuenta no está activa. Por favor contacta con soporte."
+            ));
+        };
+    }
+
+    /* Validate Reset Token */
+
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<Map<String, Boolean>> validateResetToken(
+            @RequestParam String token
+    ) {
+        boolean isValid = passwordResetService.validateToken(token);
+        return ResponseEntity.ok(Map.of("valid", isValid));
     }
 }
 
