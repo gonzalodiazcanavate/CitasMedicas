@@ -26,6 +26,24 @@ export interface AppleLoginRequest {
   lastName?: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+export interface MessageResponse {
+  message?: string;
+  error?: string;
+}
+
+export interface ValidateTokenResponse {
+  valid: boolean;
+}
+
 export interface AuthMeResponse {
   auth: boolean;
   user?: User;

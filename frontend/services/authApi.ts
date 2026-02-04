@@ -3,6 +3,8 @@ import type {
   LoginResponse,
   AuthMeResponse,
   User,
+  MessageResponse,
+  ValidateTokenResponse,
 } from '@/types/auth';
 
 // Login
@@ -60,4 +62,31 @@ export function logout() {
   return fetcher('/api/auth/logout', {
     method: 'POST',
   });
+}
+
+// Forgot Password
+export function forgotPassword(email: string): Promise<MessageResponse> {
+  return fetcher<MessageResponse>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({email}),
+  });
+}
+
+// Reset Password
+export function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<MessageResponse> {
+  return fetcher<MessageResponse>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({token, newPassword}),
+  });
+}
+
+// Validate Reset Token
+export async function validateResetToken(
+  token: string
+): Promise<ValidateTokenResponse> {
+  const res = await fetch(`/api/auth/reset-password?token=${encodeURIComponent(token)}`);
+  return res.json();
 }
