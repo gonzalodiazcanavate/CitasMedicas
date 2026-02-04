@@ -1,11 +1,28 @@
 # Historial de Cambios #
 Todos los cambios notables del proyecto se documentarán en este archivo.
-
 ## [Próxima Versión] - Próximos Cambios ##
 ###  Agregado (Added)
 
 ### Cambiado (Changed)
 
+### Corregido (Fixed)
+
+### Obsoleto (Deprecated)
+
+### Eliminado (Removed)
+
+## [Version 0.2.0] - 04/02/2026 ##
+###  Agregado (Added)
+- Añadida página de login.
+- Añadido servicio de login en Next.js (tanto en el backend de Next como en el frontend).
+- Añadida persistencia y borrado periódico de refresh_token.
+- Añadida rotación de refresh_token.
+- Añadida autenticación con google.
+- Añadida funcionalidad para cambios de contraseña.
+- Añadido remember me para refresh_token más duraderos.
+### Cambiado (Changed)
+- Cambiada configuración del linter.
+- Modificado endpoint de login en AuthController para incluir las nuevas features.
 ### Corregido (Fixed)
 
 ### Obsoleto (Deprecated)

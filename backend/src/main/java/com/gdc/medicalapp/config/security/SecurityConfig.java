@@ -82,9 +82,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                        .requestMatchers(
                             "/auth/login",
+                            "/auth/google",
+                            "/auth/apple",
                             "/auth/refresh",
                             "/auth/logout",
                             "/auth/register",
+                            "/auth/forgot-password",
+                            "/auth/reset-password",
+                            "/auth/validate-reset-token",
                             "/test/me"
                         ).permitAll()
                         .anyRequest().authenticated()

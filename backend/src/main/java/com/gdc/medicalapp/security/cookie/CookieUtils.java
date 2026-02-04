@@ -6,29 +6,32 @@ import java.time.Duration;
 
 public class CookieUtils {
 
-    public static ResponseCookie accessToken(String token) {
+    public static ResponseCookie accessToken(String token, long expirationMillis) {
         return ResponseCookie.from("access_token", token)
                 .httpOnly(true)
                 .secure(false) // true en producción (HTTPS)
                 .sameSite("Strict")
                 .path("/")
-                .maxAge(Duration.ofMinutes(15))
+                .maxAge(Duration.ofMillis(expirationMillis))
                 .build();
     }
 
-    public static ResponseCookie refreshToken(String token) {
+    public static ResponseCookie refreshToken(String token, long expirationMillis) {
         return ResponseCookie.from("refresh_token", token)
                 .httpOnly(true)
                 .secure(false)
                 .sameSite("Strict")
-                .path("/auth/refresh")
-                .maxAge(Duration.ofDays(7))
+                .path("/")
+                .maxAge(Duration.ofMillis(expirationMillis))
                 .build();
     }
 
-    public static ResponseCookie delete(String name) {
+    public static ResponseCookie delete(String name, String path) {
         return ResponseCookie.from(name, "")
-                .path("/")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Strict")
+                .path(path)
                 .maxAge(0)
                 .build();
     }

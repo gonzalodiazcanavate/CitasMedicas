@@ -33,5 +33,23 @@ public class User extends BaseEntity {
     private UserRole role;
 
     private String name;
-}
 
+    // Opcional: Control de estado del usuario
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+    @Column(nullable = false)
+    private boolean accountLocked = false;
+
+    // OAuth2: Google ID para usuarios que se autentican con Google
+    @Column(unique = true)
+    private String googleId;
+
+    // OAuth2: Apple ID para usuarios que se autentican con Apple
+    @Column(unique = true)
+    private String appleId;
+
+    // Indica el proveedor de autenticación (LOCAL, GOOGLE, APPLE, etc.)
+    @Column(nullable = false)
+    private String authProvider = "LOCAL";
+}

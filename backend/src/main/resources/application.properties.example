@@ -43,6 +43,42 @@ spring.flyway.validate-on-migrate=true
 logging.level.org.flywaydb=DEBUG
 
 # JWT Configuration
-jwt.secret=key-prueba-cambiar_m�nimo-32bytes-o-da-error-dafdsfsdfsdfdsf
-jwt.access.expiration=3600000      # 1 hora
-jwt.refresh.expiration=604800000  # 7 d�as
+jwt.secret=key-prueba-cambiar_m?nimo-32bytes-o-da-error-dafdsfsdfsdfdsf
+# Duraciones en milisegundos
+# 1 hora para access-token, 7 dias para refresh-token y 30 dias para extended-refresh-token
+jwt.access-token-expiration=3600000
+jwt.refresh-token-expiration=604800000
+jwt.extended-refresh-token-expiration=2592000000
+
+# ===============================
+# Google OAuth2
+# ===============================
+# Obtener en: https://console.cloud.google.com/apis/credentials
+google.client-id=YOUR_GOOGLE_CLIENT_ID_HERE
+
+# ===============================
+# Apple Sign In
+# ===============================
+# Obtener en: https://developer.apple.com/account/resources/identifiers/list/serviceId
+# Requiere cuenta de Apple Developer ($99/año)
+apple.client-id=YOUR_APPLE_SERVICE_ID_HERE
+
+# ===============================
+# Email (SMTP)
+# ===============================
+# Configuración para Gmail (cambiar según tu proveedor)
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your-email@gmail.com
+spring.mail.password=your-app-password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+
+# ===============================
+# Password Reset
+# ===============================
+app.password-reset.token-expiration-minutes=30
+app.password-reset.max-requests-per-hour=3
+app.frontend-url=http://localhost:3000
+app.name=MedicalApp
