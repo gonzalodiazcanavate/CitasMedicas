@@ -87,6 +87,9 @@ public class SecurityConfig {
                             "/auth/refresh",
                             "/auth/logout",
                             "/auth/register",
+                            "/auth/forgot-password",
+                            "/auth/reset-password",
+                            "/auth/validate-reset-token",
                             "/test/me"
                         ).permitAll()
                         .anyRequest().authenticated()
