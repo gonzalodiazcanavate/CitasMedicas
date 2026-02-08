@@ -1,7 +1,7 @@
 'use client';
 
-import LoginForm from '../../components/auth/login/LoginForm';
-import LoginHero from '../../components/auth/login/LoginHero';
+import LoginForm from '../../components/auth/LoginForm';
+import LoginHero from '../../components/auth/LoginHero';
 
 export default function LoginPage() {
   return (

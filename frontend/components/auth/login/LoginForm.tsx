@@ -6,14 +6,14 @@ import {
   HeartPulse,
   Mail,
 } from 'lucide-react';
-import Field from '../forms/Field';
-import Divider from '../ui/Divider';
-import SocialButtons from './SocialButtons';
+import Field from '@/components/forms/Field';
+import Divider from '@/components/ui/Divider';
+import SocialButtons from '../SocialButtons';
 import LoginFormFooter from './LoginFormFooter';
-import PasswordField from '../forms/PasswordField';
-import ForgotPasswordLink from './ForgotPasswordLink';
+import PasswordField from '@/components/forms/PasswordField';
+import ForgotPasswordLink from '../ForgotPasswordLink';
 import SubmitButton from './SubmitButton';
-import RegisterLink from './RegisterLink';
+import RegisterLink from '../RegisterLink';
 
 const LoginForm = () => {
   const [emailOrUsername, setEmailOrUsername] = useState('');
